@@ -1,0 +1,20 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_locals
+    - always_declare_return_types
+    - avoid_print
+    - avoid_unused_constructor_parameters
+    - unnecessary_this
+    - sort_constructors_first
+    - sort_child_properties_last
