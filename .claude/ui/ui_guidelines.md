@@ -44,6 +44,10 @@
 - Толстые линии: `AppColors.gridLineThick`, ширина `1.5`
 - Толстая линия ставится: сверху/слева если индекс кратен 5, снизу/справа у последней ячейки
 - Реализация: `PuzzleGrid` использует `Column` + `Row` с `BoxDecoration.border` на каждой ячейке
+- **Grid адаптивный** — `cellSize` вычисляется через `LayoutBuilder`, не хардкодится
+- **Scroll запрещён** — grid всегда помещается в экран
+- Формула: `cellSize = min(availW / cols, availH / rows)` — не `clamp`, не деление с фиксированным числом
+- Все размеры в формуле — именованные константы (`_hintSize`, `_controlsHeight`, `AppSpacing.xl`)
 
 ---
 
@@ -75,9 +79,25 @@ AppButton.secondary(label: 'Сброс', onPressed: ..., icon: Icon(...))
 
 ---
 
-## 7. Запрещено
+## 7. Переключатель режима ввода
+
+Использовать `ModeControls` (`lib/features/game/ui/widgets/controls_widget.dart`).
+
+- Всегда располагается **инлайн под гридом** — `Column(mainAxisSize: min)` с `SizedBox(height: AppSpacing.xl)` между гридом и controls
+- Не использовать fixed bottom navigation bar или `bottomNavigationBar`
+- Две кнопки: Fill (■) и Cross (✕), 56×56px, borderRadius 14
+- **Toggle обязателен** — текущий режим всегда визуально выделен (filled bg + shadow)
+- **Reset запрещён** — кнопку сброса не добавлять в UI
+
+---
+
+## 8. Запрещено
 
 - Хардкод цветов: `Colors.red`, `Color(0xFF...)` вне `AppColors`
 - Магические числа в отступах: `EdgeInsets.all(16)` → `EdgeInsets.all(AppSpacing.l)`
 - Прямое использование `FilledButton` / `OutlinedButton` вне `AppButton`
+- `SingleChildScrollView` в `GameScreen`
+- Хардкод `cellSize` — только через `LayoutBuilder`
+- Кнопка сброса поля в UI
+- `clamp()` для вычисления `cellSize` — только `min()`
 - Добавление новых стилей без обновления этого файла

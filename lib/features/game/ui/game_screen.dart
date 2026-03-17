@@ -1,12 +1,16 @@
+import 'dart:math' show min;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nngram/features/game/state/game_provider.dart';
-import 'package:nngram/features/game/ui/widgets/game_toolbar.dart';
+import 'package:nngram/features/game/ui/widgets/controls_widget.dart';
 import 'package:nngram/features/game/ui/widgets/hints_panel.dart';
 import 'package:nngram/features/game/ui/widgets/puzzle_grid.dart';
 import 'package:nngram/features/level_select/state/levels_provider.dart';
 import 'package:nngram/features/progress/state/progress_provider.dart';
+import 'package:nngram/shared/ui/app_colors.dart';
+import 'package:nngram/shared/ui/app_spacing.dart';
 
 /// Экран игры.
 ///
@@ -20,8 +24,8 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  static const double _cellSize = 36.0;
-  static const double _hintWidth = 48.0;
+  static const double _hintSize = 48.0;
+  static const double _controlsHeight = 72.0;
 
   /// Флаг защиты от повторного показа диалога победы.
   ///
@@ -65,9 +69,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
 
     final puzzle = gameState.puzzle;
-    final totalWidth = _hintWidth + puzzle.width * _cellSize;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Уровень ${puzzle.id}'),
         leading: IconButton(
@@ -76,72 +80,76 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: totalWidth,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Верхний ряд: пустой угол + подсказки столбцов
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const SizedBox(width: _hintWidth),
-                            HintsPanel(
-                              hints: puzzle.colHints,
-                              cellSize: _cellSize,
-                              axis: Axis.horizontal,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gridAvailW = constraints.maxWidth - _hintSize;
+            final gridAvailH = constraints.maxHeight -
+                _hintSize -
+                _controlsHeight -
+                AppSpacing.xl;
+
+            final cellSize = min(
+              gridAvailW / puzzle.width,
+              gridAvailH / puzzle.height,
+            );
+
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Подсказки столбцов + подсказки строк + игровое поле
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const SizedBox(width: _hintSize),
+                          HintsPanel(
+                            hints: puzzle.colHints,
+                            cellSize: cellSize,
+                            axis: Axis.horizontal,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: _hintSize,
+                            child: HintsPanel(
+                              hints: puzzle.rowHints,
+                              cellSize: cellSize,
+                              axis: Axis.vertical,
                             ),
-                          ],
-                        ),
-                        // Нижний ряд: подсказки строк + игровое поле
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: _hintWidth,
-                              child: HintsPanel(
-                                hints: puzzle.rowHints,
-                                cellSize: _cellSize,
-                                axis: Axis.vertical,
-                              ),
-                            ),
-                            SizedBox(
-                              width: puzzle.width * _cellSize,
-                              child: PuzzleGrid(
-                                gameState: gameState,
-                                cellSize: _cellSize,
-                                onCellTap: (row, col) {
-                                  ref
-                                      .read(gameProvider.notifier)
-                                      .applyMove(row, col);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                          PuzzleGrid(
+                            gameState: gameState,
+                            cellSize: cellSize,
+                            onCellTap: (row, col) {
+                              ref
+                                  .read(gameProvider.notifier)
+                                  .applyMove(row, col);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.xl),
+                  // Переключатель режима ввода
+                  ModeControls(
+                    currentMode: gameState.mode,
+                    onModeChanged: (mode) {
+                      ref.read(gameProvider.notifier).setMode(mode);
+                    },
+                  ),
+                ],
               ),
-            ),
-            // Панель инструментов
-            GameToolbar(
-              currentMode: gameState.mode,
-              onToggleMode: () => ref.read(gameProvider.notifier).toggleMode(),
-              onReset: () {
-                _victoryHandled = false;
-                ref.read(gameProvider.notifier).resetGame();
-              },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

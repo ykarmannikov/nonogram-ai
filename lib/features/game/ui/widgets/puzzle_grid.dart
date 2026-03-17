@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nngram/entities/cell_state.dart';
 import 'package:nngram/entities/game_state.dart';
 import 'package:nngram/shared/ui/app_colors.dart';
@@ -30,7 +31,10 @@ class PuzzleGrid extends StatelessWidget {
           children: List.generate(puzzle.width, (col) {
             final cellState = gameState.playerGrid[row][col];
             return GestureDetector(
-              onTap: () => onCellTap(row, col),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onCellTap(row, col);
+              },
               child: _CellWidget(
                 state: cellState,
                 size: cellSize,
@@ -91,7 +95,8 @@ class _CellWidget extends StatelessWidget {
         bgColor = AppColors.gridBackground;
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
       width: size,
       height: size,
       decoration: BoxDecoration(color: bgColor, border: border),
