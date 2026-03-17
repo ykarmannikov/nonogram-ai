@@ -31,7 +31,9 @@ class LevelSelectScreen extends ConsumerWidget {
           final progress = progressAsync.valueOrNull ?? [];
 
           // Инициализация при первом запуске — только на экране Easy.
-          if (difficulty == 'easy' && progressAsync.hasValue && progress.isEmpty) {
+          if (difficulty == 'easy' &&
+              progressAsync.hasValue &&
+              progress.isEmpty) {
             final hardLevels =
                 ref.watch(levelsProvider('hard')).valueOrNull ?? [];
             WidgetsBinding.instance.addPostFrameCallback((_) {

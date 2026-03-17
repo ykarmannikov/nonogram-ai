@@ -155,12 +155,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     final puzzle = currentState.puzzle;
 
-    final easyIds =
-        ref.read(levelsProvider('easy')).valueOrNull?.map((p) => p.id).toList() ??
-            [];
-    final hardIds =
-        ref.read(levelsProvider('hard')).valueOrNull?.map((p) => p.id).toList() ??
-            [];
+    final easyIds = ref
+            .read(levelsProvider('easy'))
+            .valueOrNull
+            ?.map((p) => p.id)
+            .toList() ??
+        [];
+    final hardIds = ref
+            .read(levelsProvider('hard'))
+            .valueOrNull
+            ?.map((p) => p.id)
+            .toList() ??
+        [];
 
     await ref.read(progressProvider.notifier).markCompletedAndUnlockNext(
           completedId: puzzle.id,
