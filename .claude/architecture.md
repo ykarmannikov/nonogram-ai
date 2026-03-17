@@ -53,28 +53,6 @@ features/
 
 Внутри фичи допустима структура `ui/`, `state/`, `repository/`. Фичи могут использовать `entities` и `core`, но **не должны** напрямую импортировать друг друга. Межфичевое взаимодействие через провайдеры Riverpod (например, `selectedPuzzleProvider`).
 
-<<<<<<< HEAD
-=======
-### Unlock-логика уровней
-
-Правила разблокировки реализованы в `features/level_select/state/levels_provider.dart`:
-
-- **Easy-уровни**: всегда разблокированы.
-- **Hard-режим**: кнопка на `DifficultyScreen` заблокирована, пока не пройдены все easy. Контролируется `hardUnlockedProvider` — смотрит `levelsProvider('easy')` + `progressProvider`.
-- **Hard-уровни внутри списка**: последовательная разблокировка — `hard_N` доступен только после прохождения `hard_{N-1}`. Логика в `LevelSelectScreen._isLocked()`.
-
-Поток данных: `progressProvider` (БД) → `hardUnlockedProvider` → `DifficultyScreen` (кнопка) и `LevelSelectScreen` (карточки).
-
-### Исправление бага автозаполнения уровня
-
-**Проблема:** `gameProvider` хранит `GameState` с `isSolved=true` после прохождения уровня. При открытии следующего уровня `GameScreen.build()` срабатывал раньше `_initGame()` → видел `isSolved=true` → показывал диалог победы.
-
-**Решение:**
-1. `GameNotifier.clearGame()` — сбрасывает state в null.
-2. `_initGame()` вызывает `clearGame()` перед `startGame()` → первый build видит null → LoadingWidget.
-3. Guard в `_handleVictory` — проверяет что `currentState.isSolved` всё ещё true перед показом диалога.
-
->>>>>>> d803502 (fix: auto-solve bug + sequential level unlock system (#5))
 ---
 
 ## Слой `shared`
