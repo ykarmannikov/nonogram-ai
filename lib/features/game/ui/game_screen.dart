@@ -5,6 +5,7 @@ import 'package:nngram/features/game/state/game_provider.dart';
 import 'package:nngram/features/game/ui/widgets/game_toolbar.dart';
 import 'package:nngram/features/game/ui/widgets/hints_panel.dart';
 import 'package:nngram/features/game/ui/widgets/puzzle_grid.dart';
+import 'package:nngram/features/level_select/state/levels_provider.dart';
 import 'package:nngram/features/progress/state/progress_provider.dart';
 
 /// Экран игры.
@@ -31,11 +32,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
-    // Запускаем игру сразу после построения виджета.
     WidgetsBinding.instance.addPostFrameCallback((_) => _initGame());
   }
 
   void _initGame() {
+    // Сбрасываем старый GameState до null — первый build нового уровня
+    // увидит null → LoadingWidget, а не isSolved=true от предыдущей партии.
+    ref.read(gameProvider.notifier).clearGame();
     final puzzle = ref.read(selectedPuzzleProvider);
     if (puzzle != null) {
       _victoryHandled = false;
@@ -145,11 +148,25 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Future<void> _handleVictory(BuildContext context) async {
-    final puzzle = ref.read(gameProvider)?.puzzle;
-    if (puzzle == null) return;
+    // Guard: состояние могло сброситься к тому моменту, как callback выполнился
+    // (например, при быстром переходе на следующий уровень).
+    final currentState = ref.read(gameProvider);
+    if (currentState == null || !currentState.isSolved) return;
 
-    // Сохраняем прогресс
-    await ref.read(progressProvider.notifier).markCompleted(puzzle.id);
+    final puzzle = currentState.puzzle;
+
+    final easyIds =
+        ref.read(levelsProvider('easy')).valueOrNull?.map((p) => p.id).toList() ??
+            [];
+    final hardIds =
+        ref.read(levelsProvider('hard')).valueOrNull?.map((p) => p.id).toList() ??
+            [];
+
+    await ref.read(progressProvider.notifier).markCompletedAndUnlockNext(
+          completedId: puzzle.id,
+          easyIds: easyIds,
+          hardIds: hardIds,
+        );
 
     if (!context.mounted) return;
 

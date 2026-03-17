@@ -63,6 +63,15 @@ features/
 
 Поток данных: `progressProvider` (БД) → `hardUnlockedProvider` → `DifficultyScreen` (кнопка) и `LevelSelectScreen` (карточки).
 
+### Исправление бага автозаполнения уровня
+
+**Проблема:** `gameProvider` хранит `GameState` с `isSolved=true` после прохождения уровня. При открытии следующего уровня `GameScreen.build()` срабатывал раньше `_initGame()` → видел `isSolved=true` → показывал диалог победы.
+
+**Решение:**
+1. `GameNotifier.clearGame()` — сбрасывает state в null.
+2. `_initGame()` вызывает `clearGame()` перед `startGame()` → первый build видит null → LoadingWidget.
+3. Guard в `_handleVictory` — проверяет что `currentState.isSolved` всё ещё true перед показом диалога.
+
 ---
 
 ## Слой `shared`

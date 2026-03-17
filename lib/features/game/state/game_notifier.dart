@@ -32,6 +32,12 @@ class GameNotifier extends StateNotifier<GameState?> {
     state = state!.copyWith(mode: newMode);
   }
 
+  /// Очищает состояние игры при переходе на новый уровень.
+  ///
+  /// Вызывать до [startGame] — гарантирует, что первый build нового экрана
+  /// видит null и не триггерит диалог победы от предыдущего уровня.
+  void clearGame() => state = null;
+
   /// Сбрасывает поле до начального состояния.
   void resetGame() {
     if (state == null) return;

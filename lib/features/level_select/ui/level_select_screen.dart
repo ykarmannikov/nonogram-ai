@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nngram/entities/progress.dart';
 import 'package:nngram/entities/puzzle.dart';
 import 'package:nngram/features/game/state/game_provider.dart';
 import 'package:nngram/features/level_select/state/levels_provider.dart';
@@ -27,8 +28,19 @@ class LevelSelectScreen extends ConsumerWidget {
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
         data: (levels) {
-          final completedIds =
-              progressAsync.valueOrNull?.map((p) => p.levelId).toSet() ?? {};
+          final progress = progressAsync.valueOrNull ?? [];
+
+          // Инициализация при первом запуске — только на экране Easy.
+          if (difficulty == 'easy' && progressAsync.hasValue && progress.isEmpty) {
+            final hardLevels =
+                ref.watch(levelsProvider('hard')).valueOrNull ?? [];
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(progressProvider.notifier).initializeIfNeeded(
+                    levels.map((p) => p.id).toList(),
+                    hardLevels.map((p) => p.id).toList(),
+                  );
+            });
+          }
 
           return GridView.builder(
             padding: const EdgeInsets.all(16),
@@ -40,8 +52,9 @@ class LevelSelectScreen extends ConsumerWidget {
             itemCount: levels.length,
             itemBuilder: (context, index) {
               final puzzle = levels[index];
-              final isCompleted = completedIds.contains(puzzle.id);
-              final isLocked = _isLocked(index, levels, completedIds);
+              final isCompleted =
+                  progress.any((p) => p.levelId == puzzle.id && p.isCompleted);
+              final isLocked = _isLocked(puzzle, progress);
 
               return _LevelCard(
                 puzzle: puzzle,
@@ -56,17 +69,9 @@ class LevelSelectScreen extends ConsumerWidget {
     );
   }
 
-  /// Уровень заблокирован если:
-  /// - Easy: никогда
-  /// - Hard: каждый следующий открывается только после прохождения предыдущего
-  bool _isLocked(
-    int index,
-    List<Puzzle> levels,
-    Set<String> completedIds,
-  ) {
-    if (difficulty == 'easy') return false;
-    if (index == 0) return false;
-    return !completedIds.contains(levels[index - 1].id);
+  /// Уровень заблокирован если нет записи с isUnlocked=true в прогрессе.
+  bool _isLocked(Puzzle puzzle, List<Progress> progress) {
+    return !progress.any((p) => p.levelId == puzzle.id && p.isUnlocked);
   }
 
   void _openLevel(BuildContext context, WidgetRef ref, Puzzle puzzle) {

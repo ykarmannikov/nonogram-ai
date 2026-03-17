@@ -18,11 +18,9 @@ final levelsProvider =
 
 /// Провайдер флага разблокировки режима Hard.
 ///
-/// Hard разблокируется, когда все Easy уровни пройдены.
+/// Hard разблокируется, когда хотя бы один hard-уровень помечен isUnlocked.
+/// Это происходит после прохождения всех easy уровней.
 final hardUnlockedProvider = Provider<bool>((ref) {
-  final easyLevels = ref.watch(levelsProvider('easy')).valueOrNull ?? [];
   final progress = ref.watch(progressProvider).valueOrNull ?? [];
-  if (easyLevels.isEmpty) return false;
-  final completedIds = progress.map((p) => p.levelId).toSet();
-  return easyLevels.every((p) => completedIds.contains(p.id));
+  return progress.any((p) => p.levelId.startsWith('hard_') && p.isUnlocked);
 });
