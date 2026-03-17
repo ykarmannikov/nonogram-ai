@@ -53,6 +53,16 @@ features/
 
 Внутри фичи допустима структура `ui/`, `state/`, `repository/`. Фичи могут использовать `entities` и `core`, но **не должны** напрямую импортировать друг друга. Межфичевое взаимодействие через провайдеры Riverpod (например, `selectedPuzzleProvider`).
 
+### Unlock-логика уровней
+
+Правила разблокировки реализованы в `features/level_select/state/levels_provider.dart`:
+
+- **Easy-уровни**: всегда разблокированы.
+- **Hard-режим**: кнопка на `DifficultyScreen` заблокирована, пока не пройдены все easy. Контролируется `hardUnlockedProvider` — смотрит `levelsProvider('easy')` + `progressProvider`.
+- **Hard-уровни внутри списка**: последовательная разблокировка — `hard_N` доступен только после прохождения `hard_{N-1}`. Логика в `LevelSelectScreen._isLocked()`.
+
+Поток данных: `progressProvider` (БД) → `hardUnlockedProvider` → `DifficultyScreen` (кнопка) и `LevelSelectScreen` (карточки).
+
 ---
 
 ## Слой `shared`

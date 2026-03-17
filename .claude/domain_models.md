@@ -19,6 +19,29 @@
 
 **Важно:** `rowHints` и `colHints` **не хранятся** в JSON-файлах и не в БД. Они вычисляются при загрузке через `PuzzleEngine.buildFromJson()`.
 
+### Формат JSON-файла уровня
+
+Файлы находятся в `assets/puzzles/easy/` и `assets/puzzles/hard/`. Каждый файл — один уровень.
+
+```json
+{
+  "id": "easy_1",
+  "difficulty": "easy",
+  "width": 5,
+  "height": 5,
+  "solution": [
+    [0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0],
+    [1, 1, 1, 1, 1],
+    [0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0]
+  ]
+}
+```
+
+Поля `rowHints` и `colHints` в JSON не нужны — они генерируются автоматически.
+Пути всех файлов регистрируются в `LevelsRepository` (`_easyAssets`, `_hardAssets`).
+
 ---
 
 ## GameState
