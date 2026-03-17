@@ -41,11 +41,13 @@ class LevelSelectScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final puzzle = levels[index];
               final isCompleted = completedIds.contains(puzzle.id);
+              final isLocked = _isLocked(index, levels, completedIds);
 
               return _LevelCard(
                 puzzle: puzzle,
                 isCompleted: isCompleted,
-                onTap: () => _openLevel(context, ref, puzzle),
+                isLocked: isLocked,
+                onTap: isLocked ? null : () => _openLevel(context, ref, puzzle),
               );
             },
           );
@@ -54,34 +56,61 @@ class LevelSelectScreen extends ConsumerWidget {
     );
   }
 
+  /// Уровень заблокирован если:
+  /// - Easy: никогда
+  /// - Hard: каждый следующий открывается только после прохождения предыдущего
+  bool _isLocked(
+    int index,
+    List<Puzzle> levels,
+    Set<String> completedIds,
+  ) {
+    if (difficulty == 'easy') return false;
+    if (index == 0) return false;
+    return !completedIds.contains(levels[index - 1].id);
+  }
+
   void _openLevel(BuildContext context, WidgetRef ref, Puzzle puzzle) {
     ref.read(selectedPuzzleProvider.notifier).state = puzzle;
     context.push('/game');
   }
 
-  String _titleFor(String difficulty) =>
-      difficulty == 'easy' ? 'Лёгкие уровни' : 'Сложные уровни';
+  String _titleFor(String diff) =>
+      diff == 'easy' ? 'Лёгкие уровни' : 'Сложные уровни';
 }
 
 class _LevelCard extends StatelessWidget {
   const _LevelCard({
     required this.puzzle,
     required this.isCompleted,
+    required this.isLocked,
     required this.onTap,
   });
 
   final Puzzle puzzle;
   final bool isCompleted;
-  final VoidCallback onTap;
+  final bool isLocked;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final Color cardColor;
+    final IconData icon;
+
+    if (isLocked) {
+      cardColor = colorScheme.surfaceContainerLow;
+      icon = Icons.lock;
+    } else if (isCompleted) {
+      cardColor = colorScheme.primaryContainer;
+      icon = Icons.check_circle;
+    } else {
+      cardColor = colorScheme.surfaceContainerHighest;
+      icon = Icons.grid_on;
+    }
+
     return Card(
-      color: isCompleted
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainerHighest,
+      color: cardColor,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -89,14 +118,17 @@ class _LevelCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (isCompleted)
-                const Icon(Icons.check_circle, size: 24)
-              else
-                const Icon(Icons.grid_on, size: 24),
+              Icon(
+                icon,
+                size: 24,
+                color: isLocked ? colorScheme.outline : null,
+              ),
               const SizedBox(height: 4),
               Text(
                 '${puzzle.width}×${puzzle.height}',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isLocked ? colorScheme.outline : null,
+                    ),
               ),
             ],
           ),
