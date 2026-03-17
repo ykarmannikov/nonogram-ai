@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nngram/entities/game_mode.dart';
+import 'package:nngram/shared/ui/app_button.dart';
+import 'package:nngram/shared/ui/app_spacing.dart';
 
 /// Панель инструментов игрового экрана.
 ///
@@ -21,21 +23,22 @@ class GameToolbar extends StatelessWidget {
     final isFill = currentMode == GameMode.fill;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.l,
+        vertical: AppSpacing.s,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Переключатель режима
-          FilledButton.icon(
+          AppButton(
             onPressed: onToggleMode,
             icon: Icon(isFill ? Icons.grid_on : Icons.close),
-            label: Text(isFill ? 'Закрашивание' : 'Крест'),
+            label: isFill ? 'Закрашивание' : 'Крест',
           ),
-          // Сброс поля
-          OutlinedButton.icon(
+          AppButton.secondary(
             onPressed: onReset,
             icon: const Icon(Icons.refresh),
-            label: const Text('Сброс'),
+            label: 'Сброс',
           ),
         ],
       ),
