@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nngram/shared/ui/app_colors.dart';
+import 'package:nngram/shared/ui/app_spacing.dart';
 
 /// Виджет подсказок для одной линии (строки или столбца).
 ///
@@ -38,7 +40,8 @@ class HintsPanel extends StatelessWidget {
                   .map(
                     (n) => Text(
                       '$n',
-                      style: theme.textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: AppColors.hintText),
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -59,10 +62,12 @@ class HintsPanel extends StatelessWidget {
               children: rowHints
                   .map(
                     (n) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                       child: Text(
                         '$n',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: AppColors.hintText),
                       ),
                     ),
                   )

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nngram/entities/cell_state.dart';
 import 'package:nngram/entities/game_state.dart';
+import 'package:nngram/shared/ui/app_colors.dart';
 
 /// Игровое поле — сетка ячеек.
 class PuzzleGrid extends StatelessWidget {
@@ -19,33 +20,38 @@ class PuzzleGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final puzzle = gameState.puzzle;
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: puzzle.width,
-        mainAxisSpacing: 1,
-        crossAxisSpacing: 1,
-      ),
-      itemCount: puzzle.width * puzzle.height,
-      itemBuilder: (context, index) {
-        final row = index ~/ puzzle.width;
-        final col = index % puzzle.width;
-        final cellState = gameState.playerGrid[row][col];
-
-        return GestureDetector(
-          onTap: () => onCellTap(row, col),
-          child: _CellWidget(
-            state: cellState,
-            size: cellSize,
-            filledColor: colorScheme.primary,
-            emptyColor: colorScheme.surfaceContainerHighest,
-          ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(puzzle.height, (row) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(puzzle.width, (col) {
+            final cellState = gameState.playerGrid[row][col];
+            return GestureDetector(
+              onTap: () => onCellTap(row, col),
+              child: _CellWidget(
+                state: cellState,
+                size: cellSize,
+                border: _cellBorder(row, col, puzzle.height, puzzle.width),
+              ),
+            );
+          }),
         );
-      },
+      }),
+    );
+  }
+
+  static Border _cellBorder(int row, int col, int rows, int cols) {
+    const thin = BorderSide(color: AppColors.gridLine, width: 0.5);
+    const thick = BorderSide(color: AppColors.gridLineThick, width: 1.5);
+
+    return Border(
+      top: row % 5 == 0 ? thick : thin,
+      left: col % 5 == 0 ? thick : thin,
+      bottom: row == rows - 1 ? thick : BorderSide.none,
+      right: col == cols - 1 ? thick : BorderSide.none,
     );
   }
 }
@@ -54,27 +60,42 @@ class _CellWidget extends StatelessWidget {
   const _CellWidget({
     required this.state,
     required this.size,
-    required this.filledColor,
-    required this.emptyColor,
+    required this.border,
   });
 
   final CellState state;
   final double size;
-  final Color filledColor;
-  final Color emptyColor;
+  final Border border;
 
   @override
   Widget build(BuildContext context) {
+    final Color bgColor;
+    Widget? child;
+
+    switch (state) {
+      case CellState.filled:
+        bgColor = AppColors.filled;
+      case CellState.cross:
+        bgColor = AppColors.gridBackground;
+        child = Center(
+          child: Text(
+            '✕',
+            style: TextStyle(
+              fontSize: size * 0.55,
+              color: AppColors.cross,
+              height: 1,
+            ),
+          ),
+        );
+      case CellState.empty:
+        bgColor = AppColors.gridBackground;
+    }
+
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: state == CellState.filled ? filledColor : emptyColor,
-        border: Border.all(color: Colors.grey.shade400, width: 0.5),
-      ),
-      child: state == CellState.cross
-          ? Icon(Icons.close, size: size * 0.6, color: Colors.red.shade400)
-          : null,
+      decoration: BoxDecoration(color: bgColor, border: border),
+      child: child,
     );
   }
 }
