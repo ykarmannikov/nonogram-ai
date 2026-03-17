@@ -44,6 +44,10 @@
 - Толстые линии: `AppColors.gridLineThick`, ширина `1.5`
 - Толстая линия ставится: сверху/слева если индекс кратен 5, снизу/справа у последней ячейки
 - Реализация: `PuzzleGrid` использует `Column` + `Row` с `BoxDecoration.border` на каждой ячейке
+- **Grid адаптивный** — `cellSize` вычисляется через `LayoutBuilder`, не хардкодится
+- **Scroll запрещён** — grid всегда помещается в экран
+- Формула: `cellSize = min(availW / cols, availH / rows)` — не `clamp`, не деление с фиксированным числом
+- Все размеры в формуле — именованные константы (`_hintSize`, `_controlsHeight`, `AppSpacing.xl`)
 
 ---
 
@@ -75,9 +79,46 @@ AppButton.secondary(label: 'Сброс', onPressed: ..., icon: Icon(...))
 
 ---
 
-## 7. Запрещено
+## 7. Переключатель режима ввода
+
+Использовать `ModeControls` (`lib/features/game/ui/widgets/controls_widget.dart`).
+
+- Всегда располагается **инлайн под гридом** — `Column(mainAxisSize: min)` с `SizedBox(height: AppSpacing.xl)` между гридом и controls
+- Не использовать fixed bottom navigation bar или `bottomNavigationBar`
+- Две кнопки: Fill (■) и Cross (✕), 56×56px, borderRadius 14
+- **Toggle обязателен** — текущий режим всегда визуально выделен (filled bg + shadow)
+- **Reset запрещён** — кнопку сброса не добавлять в UI
+
+---
+
+## 8. Игровой HUD (GameScreen)
+
+- **AppBar запрещён** на игровом экране — использовать `Stack` + `_GameTopBar`
+- `_GameTopBar`: `Row` с `_BackButton` (44×44, borderRadius 12, white 0.9) + `Spacer` + `Text(puzzle.title)` + `Spacer` + `SizedBox(width: 44)`
+- Edge-to-edge режим: `SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge)` в `initState`, восстановление в `dispose`
+- Контент смещается вниз через `Padding(top: _topBarReservation)` внутри `Stack`
+
+---
+
+## 9. Platform-aware детали
+
+Использовать `PlatformUtils` (`lib/shared/utils/platform_utils.dart`).
+
+- **Haptic**: `PlatformUtils.triggerCellTap()` вместо прямых вызовов `HapticFeedback`
+- **Тени**: `blurRadius: PlatformUtils.isIOS ? 3 : 6` — iOS получает мягкую тень, Android — более выраженную
+- Один UI для всех платформ, разница только в деталях
+
+---
+
+## 10. Запрещено
 
 - Хардкод цветов: `Colors.red`, `Color(0xFF...)` вне `AppColors`
 - Магические числа в отступах: `EdgeInsets.all(16)` → `EdgeInsets.all(AppSpacing.l)`
 - Прямое использование `FilledButton` / `OutlinedButton` вне `AppButton`
+- `SingleChildScrollView` в `GameScreen`
+- Хардкод `cellSize` — только через `LayoutBuilder`
+- Кнопка сброса поля в UI
+- `clamp()` для вычисления `cellSize` — только `min()`
+- `AppBar` на игровом экране — только `_GameTopBar` через `Stack`
+- Прямые вызовы `HapticFeedback` — только `PlatformUtils.triggerCellTap()`
 - Добавление новых стилей без обновления этого файла

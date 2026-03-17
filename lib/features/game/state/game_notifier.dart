@@ -24,6 +24,12 @@ class GameNotifier extends StateNotifier<GameState?> {
     state = PuzzleEngine.checkSolved(afterMove);
   }
 
+  /// Устанавливает режим взаимодействия.
+  void setMode(GameMode mode) {
+    if (state == null) return;
+    state = state!.copyWith(mode: mode);
+  }
+
   /// Переключает режим взаимодействия (fill ↔ cross).
   void toggleMode() {
     if (state == null) return;

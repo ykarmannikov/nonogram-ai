@@ -12,6 +12,7 @@ import 'package:nngram/entities/puzzle.dart';
 Puzzle buildPuzzle(List<List<int>> solution) {
   return Puzzle(
     id: 'test',
+    title: 'Test',
     difficulty: 'easy',
     width: solution.isEmpty ? 0 : solution[0].length,
     height: solution.length,
