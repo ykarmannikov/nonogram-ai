@@ -61,3 +61,18 @@
 **Решение:** Провайдер базы данных `appDatabaseProvider` живёт в `lib/core/database/database_provider.dart`.
 
 **Причина:** `AppDatabase` — инфраструктурный компонент слоя `core`. Если провайдер определён внутри `features/progress/`, то любая другая фича, которой нужна БД, вынуждена импортировать из чужой фичи — это нарушает архитектурное правило изоляции фич. Размещение в `core` даёт корректный доступ всем фичам без нарушения зависимостей.
+
+---
+
+## ADR-007: Сброс `gameProvider` перед началом нового уровня
+
+**Дата:** 2026-03-17
+
+**Решение:** `GameNotifier.clearGame()` сбрасывает `state` в `null` до вызова `startGame()`. `_initGame()` вызывается в `addPostFrameCallback` при инициализации `GameScreen`.
+
+**Причина:** Без сброса `GameScreen.build()` отрабатывал до `_initGame()` и видел старый `GameState` с `isSolved=true` → немедленно планировал диалог победы на новом уровне. Сброс в `null` гарантирует, что первый build видит `null` → `LoadingWidget`, и диалог не показывается.
+
+**Детали реализации:**
+1. `GameNotifier.clearGame()` — `state = null`.
+2. `_initGame()` вызывает `clearGame()` перед `startGame()`.
+3. Guard в `_handleVictory` — проверяет `currentState.isSolved` перед показом диалога на случай гонки состояний.

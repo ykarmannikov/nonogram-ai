@@ -2,10 +2,10 @@
 
 ## Приоритет 1: Запуск приложения
 
-- [ ] Запустить `flutter pub get`
-- [ ] Запустить `flutter pub run build_runner build --delete-conflicting-outputs`
-- [ ] Убедиться, что `flutter analyze` проходит без ошибок
-- [ ] Проверить запуск на эмуляторе/устройстве
+- [x] Запустить `flutter pub get`
+- [x] Запустить `flutter pub run build_runner build --delete-conflicting-outputs`
+- [x] Убедиться, что `flutter analyze` проходит без ошибок
+- [x] Проверить запуск на эмуляторе/устройстве
 
 ## Приоритет 2: Контент
 
