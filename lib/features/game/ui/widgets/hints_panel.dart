@@ -40,7 +40,8 @@ class HintsPanel extends StatelessWidget {
                   .map(
                     (n) => Text(
                       '$n',
-                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.hintText),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: AppColors.hintText),
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -61,10 +62,12 @@ class HintsPanel extends StatelessWidget {
               children: rowHints
                   .map(
                     (n) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                       child: Text(
                         '$n',
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.hintText),
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: AppColors.hintText),
                       ),
                     ),
                   )
