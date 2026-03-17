@@ -8,13 +8,14 @@ part 'app_database.g.dart';
 // Таблицы
 // ---------------------------------------------------------------------------
 
-/// Таблица пройденных уровней.
+/// Таблица прогресса уровней.
 ///
-/// Наличие записи означает, что уровень пройден.
-/// Производные состояния (разблокировка) вычисляются в runtime.
+/// Каждая запись хранит состояние разблокировки и прохождения уровня.
 class ProgressEntries extends Table {
   TextColumn get levelId => text()();
-  IntColumn get completedAt => integer()();
+  IntColumn get isCompleted => integer().withDefault(const Constant(0))();
+  IntColumn get isUnlocked => integer().withDefault(const Constant(0))();
+  IntColumn get completedAt => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {levelId};
@@ -30,29 +31,71 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'nngram'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(progressEntries, progressEntries.isCompleted);
+            await m.addColumn(progressEntries, progressEntries.isUnlocked);
+            // Старые записи (completed) получают isCompleted=1, isUnlocked=1
+            await customStatement(
+              'UPDATE progress_entries SET is_completed = 1, is_unlocked = 1',
+            );
+          }
+        },
+      );
 
   // ---------------------------------------------------------------------------
   // Запросы прогресса
   // ---------------------------------------------------------------------------
 
-  /// Возвращает все пройденные уровни.
+  /// Возвращает все записи прогресса.
   Future<List<Progress>> getAllProgress() async {
     final entries = await select(progressEntries).get();
     return entries.map(_entryToProgress).toList();
   }
 
-  /// Сохраняет запись о прохождении уровня.
-  Future<void> saveProgress(Progress progress) async {
+  /// Разблокирует уровень (создаёт запись если её нет).
+  Future<void> setUnlocked(String levelId) async {
     await into(progressEntries).insertOnConflictUpdate(
-      ProgressEntriesCompanion.insert(
-        levelId: progress.levelId,
-        completedAt: progress.completedAt.millisecondsSinceEpoch,
+      ProgressEntriesCompanion(
+        levelId: Value(levelId),
+        isUnlocked: const Value(1),
       ),
     );
   }
 
-  /// Удаляет запись о прохождении уровня.
+  /// Помечает уровень как пройденный.
+  Future<void> setCompleted(String levelId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await into(progressEntries).insertOnConflictUpdate(
+      ProgressEntriesCompanion(
+        levelId: Value(levelId),
+        isCompleted: const Value(1),
+        isUnlocked: const Value(1),
+        completedAt: Value(now),
+      ),
+    );
+  }
+
+  /// Инициализирует записи для всех уровней при первом запуске.
+  Future<void> initializeAll(
+    List<String> levelIds,
+    String firstUnlockedId,
+  ) async {
+    for (final id in levelIds) {
+      await into(progressEntries).insertOnConflictUpdate(
+        ProgressEntriesCompanion(
+          levelId: Value(id),
+          isUnlocked: Value(id == firstUnlockedId ? 1 : 0),
+        ),
+      );
+    }
+  }
+
+  /// Удаляет запись прогресса.
   Future<void> deleteProgress(String levelId) async {
     await (delete(progressEntries)..where((t) => t.levelId.equals(levelId)))
         .go();
@@ -65,7 +108,11 @@ class AppDatabase extends _$AppDatabase {
   Progress _entryToProgress(ProgressEntry entry) {
     return Progress(
       levelId: entry.levelId,
-      completedAt: DateTime.fromMillisecondsSinceEpoch(entry.completedAt),
+      isCompleted: entry.isCompleted == 1,
+      isUnlocked: entry.isUnlocked == 1,
+      completedAt: entry.completedAt != null
+          ? DateTime.fromMillisecondsSinceEpoch(entry.completedAt!)
+          : null,
     );
   }
 }

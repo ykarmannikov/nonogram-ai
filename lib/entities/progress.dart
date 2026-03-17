@@ -1,19 +1,28 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'progress.freezed.dart';
+part 'progress.g.dart';
 
-/// Запись о пройденном уровне.
+/// Запись о прогрессе по уровню.
 ///
-/// Наличие записи означает, что уровень пройден.
-/// Производные данные (разблокировка следующего уровня)
-/// вычисляются динамически и не хранятся в БД.
+/// Хранит состояние разблокировки и прохождения.
+/// Наличие записи означает, что уровень известен системе прогресса.
 @freezed
 class Progress with _$Progress {
   const factory Progress({
-    /// Идентификатор пройденного уровня.
+    /// Идентификатор уровня.
     required String levelId,
 
-    /// Время прохождения.
-    required DateTime completedAt,
+    /// Уровень пройден.
+    required bool isCompleted,
+
+    /// Уровень разблокирован (доступен для игры).
+    required bool isUnlocked,
+
+    /// Время прохождения (null если ещё не пройден).
+    DateTime? completedAt,
   }) = _Progress;
+
+  factory Progress.fromJson(Map<String, dynamic> json) =>
+      _$ProgressFromJson(json);
 }
