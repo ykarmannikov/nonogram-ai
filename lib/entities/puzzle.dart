@@ -14,6 +14,9 @@ class Puzzle with _$Puzzle {
     /// Уникальный идентификатор уровня.
     required String id,
 
+    /// Отображаемое название уровня (например, «Крест»).
+    required String title,
+
     /// Сложность: 'easy' или 'hard'.
     required String difficulty,
 

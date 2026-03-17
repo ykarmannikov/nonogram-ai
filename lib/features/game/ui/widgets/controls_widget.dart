@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nngram/entities/game_mode.dart';
 import 'package:nngram/shared/ui/app_colors.dart';
 import 'package:nngram/shared/ui/app_spacing.dart';
+import 'package:nngram/shared/utils/platform_utils.dart';
 
 /// Переключатель режима ввода: закрашивание или крест.
 class ModeControls extends StatelessWidget {
@@ -65,11 +66,11 @@ class _ModeButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(color: AppColors.filled, width: 2),
             boxShadow: selected
-                ? const [
+                ? [
                     BoxShadow(
                       color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
+                      blurRadius: PlatformUtils.isIOS ? 3 : 6,
+                      offset: const Offset(0, 2),
                     ),
                   ]
                 : null,

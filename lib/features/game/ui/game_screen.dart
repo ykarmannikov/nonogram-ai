@@ -1,6 +1,7 @@
 import 'dart:math' show min;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nngram/features/game/state/game_provider.dart';
@@ -11,6 +12,7 @@ import 'package:nngram/features/level_select/state/levels_provider.dart';
 import 'package:nngram/features/progress/state/progress_provider.dart';
 import 'package:nngram/shared/ui/app_colors.dart';
 import 'package:nngram/shared/ui/app_spacing.dart';
+import 'package:nngram/shared/utils/platform_utils.dart';
 
 /// Экран игры.
 ///
@@ -27,6 +29,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   static const double _hintSize = 48.0;
   static const double _controlsHeight = 72.0;
 
+  // AppSpacing.l(16) + button(44) + AppSpacing.s(8) = 68
+  static const double _topBarReservation = 68.0;
+
   /// Флаг защиты от повторного показа диалога победы.
   ///
   /// Без флага: каждый rebuild при isSolved == true добавляет новый
@@ -36,7 +41,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initGame());
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    super.dispose();
   }
 
   void _initGame() {
@@ -72,13 +87,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Уровень ${puzzle.id}'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -86,68 +94,84 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             final gridAvailH = constraints.maxHeight -
                 _hintSize -
                 _controlsHeight -
-                AppSpacing.xl;
+                AppSpacing.xl -
+                _topBarReservation;
 
             final cellSize = min(
               gridAvailW / puzzle.width,
               gridAvailH / puzzle.height,
             );
 
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Подсказки столбцов + подсказки строк + игровое поле
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(width: _hintSize),
-                          HintsPanel(
-                            hints: puzzle.colHints,
-                            cellSize: cellSize,
-                            axis: Axis.horizontal,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: _hintSize,
-                            child: HintsPanel(
-                              hints: puzzle.rowHints,
-                              cellSize: cellSize,
-                              axis: Axis.vertical,
+            return Stack(
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: _topBarReservation),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const SizedBox(width: _hintSize),
+                                HintsPanel(
+                                  hints: puzzle.colHints,
+                                  cellSize: cellSize,
+                                  axis: Axis.horizontal,
+                                ),
+                              ],
                             ),
-                          ),
-                          PuzzleGrid(
-                            gameState: gameState,
-                            cellSize: cellSize,
-                            onCellTap: (row, col) {
-                              ref
-                                  .read(gameProvider.notifier)
-                                  .applyMove(row, col);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: _hintSize,
+                                  child: HintsPanel(
+                                    hints: puzzle.rowHints,
+                                    cellSize: cellSize,
+                                    axis: Axis.vertical,
+                                  ),
+                                ),
+                                PuzzleGrid(
+                                  gameState: gameState,
+                                  cellSize: cellSize,
+                                  onCellTap: (row, col) {
+                                    ref
+                                        .read(gameProvider.notifier)
+                                        .applyMove(row, col);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                        ModeControls(
+                          currentMode: gameState.mode,
+                          onModeChanged: (mode) {
+                            ref.read(gameProvider.notifier).setMode(mode);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  // Переключатель режима ввода
-                  ModeControls(
-                    currentMode: gameState.mode,
-                    onModeChanged: (mode) {
-                      ref.read(gameProvider.notifier).setMode(mode);
-                    },
+                ),
+                Positioned(
+                  top: AppSpacing.l,
+                  left: AppSpacing.l,
+                  right: AppSpacing.l,
+                  child: _GameTopBar(
+                    title: puzzle.title,
+                    onBack: () => context.pop(),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
@@ -199,6 +223,68 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             child: const Text('К уровням'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GameTopBar extends StatelessWidget {
+  const _GameTopBar({required this.title, required this.onBack});
+
+  final String title;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _BackButton(onTap: onBack),
+        const Spacer(),
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.hintText,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+        const Spacer(),
+        // Симметричный пустой блок, чтобы заголовок был по центру
+        const SizedBox(width: 44),
+      ],
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: PlatformUtils.isIOS ? 3 : 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          size: 20,
+          color: AppColors.filled,
+        ),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:nngram/entities/cell_state.dart';
 import 'package:nngram/entities/game_state.dart';
 import 'package:nngram/shared/ui/app_colors.dart';
+import 'package:nngram/shared/utils/platform_utils.dart';
 
 /// Игровое поле — сетка ячеек.
 class PuzzleGrid extends StatelessWidget {
@@ -32,7 +32,7 @@ class PuzzleGrid extends StatelessWidget {
             final cellState = gameState.playerGrid[row][col];
             return GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
+                PlatformUtils.triggerCellTap();
                 onCellTap(row, col);
               },
               child: _CellWidget(

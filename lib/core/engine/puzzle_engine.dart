@@ -26,6 +26,7 @@ class PuzzleEngine {
 
     return Puzzle(
       id: json['id'] as String,
+      title: json['title'] as String,
       difficulty: json['difficulty'] as String,
       width: json['width'] as int,
       height: json['height'] as int,
