@@ -42,3 +42,24 @@
 - Нет таймера.
 - Нет подсказок игроку при ошибке.
 - Нет отмены хода (только полный сброс поля).
+
+---
+
+## Система прогрессии уровней
+
+### Правила разблокировки
+
+- **Easy-уровни**: последовательная разблокировка. `easy_1` открыт сразу; каждый следующий `easy_N` открывается после прохождения `easy_{N-1}`.
+- **Hard-режим**: кнопка на `DifficultyScreen` заблокирована, пока не пройдены все easy. Контролируется `hardUnlockedProvider`.
+- **Hard-уровни**: последовательная разблокировка — `hard_N` открывается после прохождения `hard_{N-1}`. Первый `hard_1` открывается автоматически после завершения последнего easy.
+
+### Реализация
+
+Флаг `isUnlocked` хранится в БД (`progress_entries.is_unlocked`). При инициализации только `easy_1` получает `isUnlocked=true`, остальные — `false`.
+
+Поток данных: `progressProvider` (БД) → `hardUnlockedProvider` → `DifficultyScreen` (кнопка) и `LevelSelectScreen` (карточки).
+
+Ключевые файлы:
+- `features/level_select/state/levels_provider.dart` — `hardUnlockedProvider`
+- `features/progress/state/progress_notifier.dart` — `markCompletedAndUnlockNext`, `initializeIfNeeded`
+- `features/level_select/ui/level_select_screen.dart` — `_isLocked()` по `isUnlocked` из БД
