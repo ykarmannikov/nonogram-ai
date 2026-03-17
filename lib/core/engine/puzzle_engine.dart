@@ -102,6 +102,21 @@ class PuzzleEngine {
     return state.copyWith(playerGrid: grid);
   }
 
+  /// Устанавливает ячейку (row, col) напрямую в [targetState] без toggle.
+  ///
+  /// Используется для drag-to-fill: действие определяется один раз
+  /// по первой ячейке сессии и применяется ко всем последующим.
+  static GameState applyDirectFill(
+    GameState state,
+    int row,
+    int col,
+    CellState targetState,
+  ) {
+    final grid = state.playerGrid.map((r) => List<CellState>.from(r)).toList();
+    grid[row][col] = targetState;
+    return state.copyWith(playerGrid: grid);
+  }
+
   /// Проверяет, решена ли головоломка.
   ///
   /// Победа: все ячейки [playerGrid] с [CellState.filled] точно

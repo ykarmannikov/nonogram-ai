@@ -141,10 +141,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                 PuzzleGrid(
                                   gameState: gameState,
                                   cellSize: cellSize,
-                                  onCellTap: (row, col) {
+                                  onCellApply: (row, col, targetState) {
                                     ref
                                         .read(gameProvider.notifier)
-                                        .applyMove(row, col);
+                                        .applyDragMove(row, col, targetState);
                                   },
                                 ),
                               ],

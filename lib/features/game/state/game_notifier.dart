@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nngram/core/engine/puzzle_engine.dart';
+import 'package:nngram/entities/cell_state.dart';
 import 'package:nngram/entities/game_mode.dart';
 import 'package:nngram/entities/game_state.dart';
 import 'package:nngram/entities/puzzle.dart';
@@ -22,6 +23,16 @@ class GameNotifier extends StateNotifier<GameState?> {
     if (state == null) return;
     final afterMove = PuzzleEngine.applyMove(state!, row, col);
     state = PuzzleEngine.checkSolved(afterMove);
+  }
+
+  /// Устанавливает ячейку (row, col) в [targetState] и проверяет победу.
+  ///
+  /// Используется для drag-to-fill: [targetState] определяется
+  /// первой ячейкой drag-сессии, все последующие ячейки получают то же значение.
+  void applyDragMove(int row, int col, CellState targetState) {
+    if (state == null) return;
+    final after = PuzzleEngine.applyDirectFill(state!, row, col, targetState);
+    state = PuzzleEngine.checkSolved(after);
   }
 
   /// Устанавливает режим взаимодействия.
