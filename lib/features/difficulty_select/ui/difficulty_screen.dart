@@ -56,6 +56,17 @@ class HomeScreen extends ConsumerWidget {
                         context.push('/game');
                       },
               ),
+              const SizedBox(height: AppSpacing.m),
+              TextButton(
+                onPressed: () => context.push('/levels/easy'),
+                child: Text(
+                  'Все уровни',
+                  style: TextStyle(
+                    color: AppColors.hintText.withValues(alpha: 0.7),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
