@@ -121,4 +121,24 @@ AppButton.secondary(label: 'Сброс', onPressed: ..., icon: Icon(...))
 - `clamp()` для вычисления `cellSize` — только `min()`
 - `AppBar` на игровом экране — только `_GameTopBar` через `Stack`
 - Прямые вызовы `HapticFeedback` — только `PlatformUtils.triggerCellTap()`
+- Стандартный Flutter `BackButton` — только `AppBackButton`
+- Кнопки выбора сложности на главном экране
 - Добавление новых стилей без обновления этого файла
+
+---
+
+## 11. Кнопка назад
+
+Использовать `AppBackButton` (`lib/shared/widgets/app_back_button.dart`) везде в приложении.
+
+- Без `onTap` — автоматически вызывает `context.pop()`
+- Не использовать стандартный Flutter `BackButton` или `IconButton(Icons.arrow_back)`
+
+---
+
+## 12. Главный экран
+
+- Одна кнопка "Играть" (ширина 240, высота 72) с двойным содержимым: заголовок + уровень
+- Кнопка содержит `Column` с `Text('Играть')` и `Text('Level N — Easy/Hard')`
+- Без `AppBar` на главном экране — `SafeArea` + `backgroundColor`
+- Без лишних кнопок выбора сложности — быстрый вход в игру (1 tap)

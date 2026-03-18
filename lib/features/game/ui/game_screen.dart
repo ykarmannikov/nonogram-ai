@@ -12,7 +12,7 @@ import 'package:nngram/features/level_select/state/levels_provider.dart';
 import 'package:nngram/features/progress/state/progress_provider.dart';
 import 'package:nngram/shared/ui/app_colors.dart';
 import 'package:nngram/shared/ui/app_spacing.dart';
-import 'package:nngram/shared/utils/platform_utils.dart';
+import 'package:nngram/shared/widgets/app_back_button.dart';
 
 /// Экран игры.
 ///
@@ -41,7 +41,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initGame());
   }
 
@@ -167,7 +167,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   left: AppSpacing.l,
                   right: AppSpacing.l,
                   child: _GameTopBar(
-                    title: puzzle.title,
+                    title: _levelLabel(puzzle.id),
                     onBack: () => context.pop(),
                   ),
                 ),
@@ -178,6 +178,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       ),
     );
   }
+
+  static String _levelLabel(String id) =>
+      id.startsWith('easy') ? 'Easy' : 'Hard';
 
   Future<void> _handleVictory(BuildContext context) async {
     // Guard: состояние могло сброситься к тому моменту, как callback выполнился
@@ -238,7 +241,7 @@ class _GameTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _BackButton(onTap: onBack),
+        AppBackButton(onTap: onBack),
         const Spacer(),
         Text(
           title,
@@ -253,39 +256,6 @@ class _GameTopBar extends StatelessWidget {
         // Симметричный пустой блок, чтобы заголовок был по центру
         const SizedBox(width: 44),
       ],
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: PlatformUtils.isIOS ? 3 : 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: const Icon(
-          Icons.arrow_back_ios_new,
-          size: 20,
-          color: AppColors.filled,
-        ),
-      ),
     );
   }
 }
