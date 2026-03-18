@@ -30,6 +30,8 @@ class HomeScreen extends ConsumerWidget {
 
     final next = ref.watch(nextUnlockedLevelProvider);
     final isLoading = easyAsync.isLoading;
+    final levelsRoute =
+        next != null && next.id.startsWith('hard') ? '/levels/hard' : '/levels/easy';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -58,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.m),
               TextButton(
-                onPressed: () => context.push('/levels/easy'),
+                onPressed: () => context.push(levelsRoute),
                 child: Text(
                   'Все уровни',
                   style: TextStyle(
