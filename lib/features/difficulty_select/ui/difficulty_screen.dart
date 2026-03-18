@@ -30,8 +30,9 @@ class HomeScreen extends ConsumerWidget {
 
     final next = ref.watch(nextUnlockedLevelProvider);
     final isLoading = easyAsync.isLoading;
-    final levelsRoute =
-        next != null && next.id.startsWith('hard') ? '/levels/hard' : '/levels/easy';
+    final levelsRoute = next != null && next.id.startsWith('hard')
+        ? '/levels/hard'
+        : '/levels/easy';
 
     return Scaffold(
       backgroundColor: AppColors.background,
