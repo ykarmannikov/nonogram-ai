@@ -16,6 +16,22 @@ final levelsProvider =
   return ref.watch(levelsRepositoryProvider).loadByDifficulty(difficulty);
 });
 
+/// Следующий доступный для игры уровень.
+///
+/// Первый разблокированный, но не пройденный уровень (easy → hard).
+/// Если все пройдены — возвращает первый easy уровень для повторного прохождения.
+final nextUnlockedLevelProvider = Provider<Puzzle?>((ref) {
+  final easy = ref.watch(levelsProvider('easy')).valueOrNull ?? [];
+  final hard = ref.watch(levelsProvider('hard')).valueOrNull ?? [];
+  final progress = ref.watch(progressProvider).valueOrNull ?? [];
+
+  for (final puzzle in [...easy, ...hard]) {
+    final entry = progress.where((p) => p.levelId == puzzle.id).firstOrNull;
+    if (entry != null && entry.isUnlocked && !entry.isCompleted) return puzzle;
+  }
+  return easy.isNotEmpty ? easy.first : null;
+});
+
 /// Провайдер флага разблокировки режима Hard.
 ///
 /// Hard разблокируется, когда хотя бы один hard-уровень помечен isUnlocked.
